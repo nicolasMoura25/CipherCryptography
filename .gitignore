@@ -1,32 +1,23 @@
-# general file excludes
-~*.tmp
-*~
-~$*
+# ignore ModelSim generated files and directories (temp files and so on)
+[_@]*
 
-# ignore Xilinx ISE files
-/Xilinx\ ISE/**/*.*
-/Xilinx\ ISE/**/ise
-!/Xilinx\ ISE/**/*.xise
-!/Xilinx\ ISE/**/iseconfig/filter.filter
+# ignore compilation output of ModelSim
+*.mti
+*.dat
+*.dbs
+*.psm
+*.bak
+*.cmp
+*.jpg
+*.html
+*.bsf
 
-# ignore Xilinx Vivado files
-/Xilinx\ Vivado/**/*.*
-!/Xilinx\ Vivado/**/*.xpr
-
-# ignore QuestaSim files
-/QuestaSim/*
-/QuestaSim/**/*.*
-!/QuestaSim/*.cmd
-!/QuestaSim/*.log
-
-# ignore GHDL files
-/ghdl/**/*.*
-!/ghdl/*.cmd
-!/ghdl/*.log
-
-# general whitelist
-!.publish
-!.git*
-
-*.cf
-JSONTestSuite/config.pkg.vhdl
+# ignore simulation output of ModelSim
+wlf*
+*.wlf
+*.vstf
+*.ucdb
+cov*/
+transcript*
+sc_dpiheader.h
+vsim.dbg
