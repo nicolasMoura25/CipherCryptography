@@ -38,40 +38,25 @@ end entity;
 --------------------------------------
 architecture gost_top of gost_top is
 	--FSM
-	signal st 		: integer range 0 to 8; --std_logic_vector (3 downto 0);
-	signal st_cnt 	: std_logic_vector(6 downto 0);
-	signal st_stage 	: std_logic_vector(1 downto 0); --integer range 0 to 4;
-	signal st_data 	: std_logic; -- 0 high, 1 low
-	signal st_round 	: integer range 0 to 14;
-	signal st_encrypt : integer range 0 to 31; --std_logic_vector (3 downto 0);
+	signal st 			: integer range 0 to 5; --std_logic_vector (3 downto 0);
+	signal st_cnt 		: std_logic_vector(6 downto 0);
+	signal st_round 	: integer range 0 to 12;
+	signal st_encrypt 	: integer range 0 to 31; 
 
 	--Temporary signals
 	type PDATA is array (0 to 3) of std_logic_vector(31 downto 0);
-	signal data_word : PDATA;
+	signal data_word 	: PDATA;
 
-	--ENC Loop signals
-	signal data_lp, data_rp : std_logic_vector (31 downto 0);
-	signal ss1, ss2, sout1, sout2 : std_logic_vector (31 downto 0);
-	signal N1,N2,R,CM2,CM1, aux : std_logic_vector (31 downto 0);
-	signal counter : integer range 0 to 16; --Counting to control loop reading
-
-	--DEC Loop signals
-	signal counterd : integer range 1 to 17;
-	signal s_sout1, s_sout2 : std_logic_vector(31 downto 0);
+	--Result variables 
+	signal N1,N2,R,CM1 	: std_logic_vector (31 downto 0);
 
 	--RAM signals
-	signal max_keys   : std_logic_vector(2 downto 0);
-	signal key_cnt    : std_logic_vector(2 downto 0);
-	signal key_addr   : std_logic_vector(2 downto 0);
-	signal key_data_o : std_logic_vector(31 downto 0);
-	signal s0_addr    : std_logic_vector(6 downto 0);
-	signal s0_data_o  : std_logic_vector(3 downto 0);
-	signal bram_flag  : std_logic;
-	signal bram_cleaned : std_logic;
-	signal bram_addr  : std_logic_vector(7 downto 0);
-	signal bram_data  : std_logic_vector(31 downto 0);
-  
-	signal max_value_integer: unsigned(31 downto 0) := (others => '1');
+	signal max_keys   	: std_logic_vector(2 downto 0);
+	signal key_cnt    	: std_logic_vector(2 downto 0);
+	signal key_addr   	: std_logic_vector(2 downto 0);
+	signal key_data_o 	: std_logic_vector(31 downto 0);
+	signal s0_addr    	: std_logic_vector(6 downto 0);
+	signal s0_data_o  	: std_logic_vector(3 downto 0);
   
 begin
 	------------------------------------
@@ -105,8 +90,8 @@ begin
               "101" when key_length = "01" else --192bit
               "011"; --default 128bit key
 
-	data_ready    <= '1' when (st = 6) else '0';
-	data_word_out <= data_word(conv_integer(st_cnt(1 downto 0))) when (st = 6) else (others => '0');
+	data_ready    <= '1' when (st = 5) else '0';
+	data_word_out <= data_word(conv_integer(st_cnt(1 downto 0))) when (st = 5) else (others => '0');
 
 	------------------------------------
 	-- Processes
@@ -117,9 +102,7 @@ begin
 	begin
 		if reset_n = '0' then
 			st       <= 0;
-			st_data  <= '0';
 			st_cnt   <= (others => '0');
-			st_stage <= (others => '0');
 			key_cnt  <= (others => '0');
 			st_encrypt <= 0;
 		elsif rising_edge(clk) then
@@ -192,21 +175,10 @@ begin
 			when 4 =>
 				st       <= st + 1;
 
-			-- 11: verify if 64-bits or 128-bits 
 			when 5 =>
-				st_data  <= not st_data;
-				st_stage <= (others => '0');
-				if st_data = '0' then
-					st     <= 2;
-				else
-					st     <= st + 1;
-				end if;
-
-			when 6 =>
 				if st_cnt = 3 then
 					st     <= 0;
 					st_cnt <= (others => '0');
-					st_stage <= (others => '0');
 				else
 					st_cnt <= st_cnt + 1;
 				end if;
@@ -229,14 +201,9 @@ begin
 			end if;
 			--end if;
 
-			if st = 5 then
-				if st_data = '0' then
-					data_word(0) <= N1;
-					data_word(1) <= N2;
-				else
-					data_word(2) <= N1;
-					data_word(3) <= N2;
-				end if;
+			if st = 4 then				
+				data_word(0) <= N1;
+				data_word(1) <= N2;
 			end if;
 		end if;
 	end process;
@@ -245,10 +212,7 @@ begin
 	EncryptionRound: process (clk, reset_n)
 	begin
 		if reset_n = '0' then
-			counter  	<= 0;
-			counterd 	<= 17;
 			R 		<= (others => '0');
-			CM2		<= (others => '0');
 			s0_addr	<= (others => '0');
 			CM1		<= (others => '0');
 			N1 		<= (others => '0');
@@ -259,14 +223,14 @@ begin
 				N2 <= data_word(0);
 			elsif st = 3 then		
 				case st_round is
-					when 0 => 
+					when 0 => -- need wait 1 round to N1 and Key_data_o be populated 
 					when 1 =>
-						CM1 <=  std_logic_vector((unsigned(N1) + unsigned(key_data_o))); --mod max_value_integer); -- 2^32
+						CM1 <=  std_logic_vector((unsigned(N1) + unsigned(key_data_o))); 
 					when 2 =>
 						s0_addr <= "000" & CM1(31 downto 28);
 					when 3 => 
 						R(31 downto 28) <= s0_data_o;
-						s0_addr <= "001" & CM1(27 downto 24);  -- apend to sum 16 this increment line
+						s0_addr <= "001" & CM1(27 downto 24);  -- sum 16 to increment line
 					when 4 => 
 						R(27 downto 24) <= s0_data_o;
 						s0_addr <= "010" & CM1(23 downto 20);
@@ -293,8 +257,6 @@ begin
 					when 12 =>
 						N2 <= N1;
 						N1 <= R xor N2;
-					when others =>
-						R <= (others => '0');
 				end case;
 			end if;		
 		end if;
