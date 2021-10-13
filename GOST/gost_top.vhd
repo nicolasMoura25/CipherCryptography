@@ -1,4 +1,11 @@
 --------------------------------------
+-- Author: Nicolas Silva Moura
+-- Created: 10/10/2021
+-- Implementation of GOST block cipher with 64 bits  block lenth and 256 key lenth
+-- Codebases as refereences: https://github.com/rochavinicius/cryptography-algorithms/blob/main/algorithms/SIMON
+--------------------------------------
+
+--------------------------------------
 -- Library
 --------------------------------------
 library IEEE;
