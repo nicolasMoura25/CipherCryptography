@@ -17,6 +17,8 @@ wlf*
 *.wlf
 *.vstf
 *.ucdb
+*.init
+*.init_new
 cov*/
 transcript*
 sc_dpiheader.h
