@@ -53,8 +53,9 @@ architecture simon_top of simon_top is
 
 	--Temporary signals
 	type PDATA is array (0 to 3) of std_logic_vector(31 downto 0);
-	signal data_word : PDATA;
-	signal first_join: std_logic;
+	signal data_word 	: PDATA;
+	signal first_join	: std_logic;
+	signal end_encrypt	: std_logic;
 
 	--ENC Loop signals
 	signal data_lp, data_rp : std_logic_vector (31 downto 0);
@@ -64,23 +65,28 @@ architecture simon_top of simon_top is
 	--DEC Loop signals
 	signal counterd : integer range 1 to 17;
 	signal s_sout1, s_sout2 : std_logic_vector(31 downto 0);
-	signal micro_state : std_logic_vector(1 downto 0);
+	signal micro_state : std_logic_vector(1 downto 0) := (others => '0');
 
 	--RAM signals	
 	type PKEYS is array (0 to 17) of std_logic_vector(31 downto 0); 
 	signal p_data_ram : PKEYS;
-	signal p_data_o   : std_logic_vector(31 downto 0);
-	signal max_keys   : std_logic_vector(2 downto 0);
-	signal key_cnt    : std_logic_vector(2 downto 0);
-	signal key_addr   : std_logic_vector(2 downto 0);	
-	signal key_data_o : std_logic_vector(31 downto 0);
+	signal p_data_o   : std_logic_vector(31 downto 0):= (others => '0');
+	signal max_keys   : std_logic_vector(2 downto 0):= (others => '0');
+	signal key_cnt    : std_logic_vector(2 downto 0):= (others => '0');
+	signal key_addr   : std_logic_vector(2 downto 0):= (others => '0');
+	signal key_data_o : std_logic_vector(31 downto 0):= (others => '0');
   
-	signal sub_key_valid		: std_logic;
-	signal sub_key_addr		: std_logic_vector(6 downto 0);
-	signal sub_key_addr_in	: std_logic_vector(6 downto 0);
-	signal sub_key_addr_out	: std_logic_vector(6 downto 0);	
-	signal sub_key_word_in	: std_logic_vector(63 downto 0);
-	signal sub_key_data_o		: std_logic_vector(63 downto 0);
+	signal sub_key_valid	: std_logic;
+	signal sub_key_addr		: std_logic_vector(6 downto 0):= (others => '0');
+	signal sub_key_addr_in	: std_logic_vector(6 downto 0):= (others => '0');
+	signal sub_key_addr_out	: std_logic_vector(6 downto 0):= (others => '0');	
+	signal sub_key_word_in	: std_logic_vector(63 downto 0):= (others => '0');
+	signal aux_word_in		: std_logic_vector(63 downto 0):= (others => '0');
+	signal sub_key_data_o	: std_logic_vector(63 downto 0);
+	
+	-- debug
+	signal ror3	: std_logic_vector(63 downto 0):= (others => '0');
+	signal ror4	: std_logic_vector(63 downto 0):= (others => '0');
   
 	--Simon variables
 	signal sub_key_first,sub_key_second,sub_key_third, sub_key_fourth : std_logic_vector(63 downto 0);
@@ -146,78 +152,72 @@ begin
 					
 				when 1 =>
 					key_cnt <= "001";
-					sub_key_first(63 downto 32) <= key_data_o;
+					sub_key_second(63 downto 32) <= key_data_o;
 					
 				when 2 =>
 					key_cnt 		<= "010";
-					sub_key_first(31 downto 0) <= key_data_o;
+					sub_key_second(31 downto 0) <= key_data_o;
 					
 				when 3 =>
 					key_cnt <= "011";
 					sub_key_addr_in <= "0000001";
-					sub_key_word_in <= sub_key_first;
+					sub_key_word_in <= sub_key_second;					
+					sub_key_first(63 downto 32) <= key_data_o;
 					sub_key_valid 	<= '1';
-					sub_key_second(63 downto 32) <= key_data_o;
 					
 				when 4 =>
-					sub_key_second(31 downto 0) <= key_data_o;
+					sub_key_valid 	<= '0';
+					sub_key_first(31 downto 0) <= key_data_o;
 					
 				when 5 =>
 					sub_key_addr_in <= "0000000";
-					sub_key_word_in <= sub_key_second;
+					sub_key_word_in <= sub_key_first;
 					sub_key_valid 	<= '1';
 					
-				when 6 =>
-					-- This step will set the SUB_KEY_ADR_IN for the next steps use incremental system
-					sub_key_valid 	<= '1';
-					sub_key_addr_in <= "0000010";
-					z 				<= "0" & z(63 downto 1);					
-					sub_key_word_in <= c xor (x"000000000000000"& "00" & z(1 downto 0))
+				when 6 to 69 =>
+					if st_rounds = 6 then 
+						sub_key_addr_in <= "0000010";
+					else
+						sub_key_addr_in <= std_logic_vector(unsigned(sub_key_addr_in) + 1);
+					end if;
+					
+					sub_key_first	<= sub_key_second;
+					z 				<= "0" & z(63 downto 1);
+					ror3			<= sub_key_second(2 downto 0) & sub_key_second(63 downto 3);
+					ror4			<= sub_key_second(3 downto 0) & sub_key_second(63 downto 4);	
+					
+					sub_key_word_in <= c xor (z and one)
 										xor sub_key_first 
 										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3))
 										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));
-					sub_key_first 	<= sub_key_second;
-					sub_key_second	<= c xor (x"000000000000000"& "00" & z(1 downto 0))
+					sub_key_second	<= c xor (z and one)
 										xor sub_key_first 
-										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3)) 
-										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));
+										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3))
+										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));					
 					
-				when 7 to 63 =>
-				--	if first_join then
-						sub_key_addr_in <= std_logic_vector(unsigned(sub_key_addr_in) + 1);
-						sub_key_first 	<= sub_key_second;
-						sub_key_valid 	<= '1';
-						z 				<= "0" & z(63 downto 1);
-						sub_key_word_in <= c xor (x"000000000000000"& "00" & z(1 downto 0)) 
-											xor sub_key_first 
-											xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3)) 
-											xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));
-						sub_key_second 	<= c xor (x"000000000000000"& "00" & z(1 downto 0)) 
-											xor sub_key_first 
-											xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3)) 
-											xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));					
-					
-				when 64 =>
+				when 70 =>
 					sub_key_addr_in <= std_logic_vector(unsigned(sub_key_addr_in) + 1);
-					sub_key_valid 	<= '1';
-					sub_key_word_in <= c xor one
+					sub_key_first 	<= sub_key_second;
+					sub_key_word_in	<= c xor one
 										xor sub_key_first
-										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3)) 
+										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3))
 										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));
+					ror3			<= sub_key_second(2 downto 0) & sub_key_second(63 downto 3);
+					ror4			<= sub_key_second(3 downto 0) & sub_key_second(63 downto 4);
 					sub_key_second 	<= c xor one
 										xor sub_key_first 
-										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3)) 
+										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3))
 										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));
 										
-				when 65 =>
+				when 71 =>
 					sub_key_addr_in <= std_logic_vector(unsigned(sub_key_addr_in) + 1);
-					sub_key_valid 	<= '1';
-					sub_key_word_in <= c xor sub_key_first 
-										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3)) 
+					sub_key_word_in		<= c xor sub_key_first 
+										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3))
 										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));
-					sub_key_second 	<= c xor sub_key_first 
-										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3)) 
-										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));						
+
+				when 72 =>
+					sub_key_valid 	<= '0';
+					
 				when others => null;
 			end case;		
 		end if;
@@ -260,7 +260,7 @@ begin
 		  
 		-- Generate subkeys
 		when 2 =>
-			if st_rounds = 65 then
+			if st_rounds = 72 then
               st     <= st + 1;
               st_rounds <= 0;
             else
@@ -269,14 +269,11 @@ begin
 
         -- Start to process the encryption/decryption
         when 3 =>
-          if st_rounds = 68 then
+          if end_encrypt = '1' then
             st     <= st + 1;
             st_rounds <= 0;
           else
-            st_rounds <= st_rounds + 1;
-			if st_rounds > 3 then
-				first_join <= not first_join;
-			end if;
+            st_rounds <= 1;
           end if;
 
         -- 4: conversion_complete
@@ -288,7 +285,7 @@ begin
           st_data  <= not st_data;
           st_stage <= (others => '0');
           if st_data = '0' then
-            st     <= 2;
+            st     <= 3;
           else
             st     <= st + 1;
           end if;
@@ -345,10 +342,11 @@ begin
 							x(31 downto 0 )	<= data_word(1);
 							y(63 downto 32) <= data_word(2);
 							y(31 downto 0 ) <= data_word(3);
+							end_encrypt <= '0';
 							sub_key_addr_out <=	"0000000";
 							micro_state <= "00";
 						
-						when 1 to 68=>							
+						when others =>							
 							case micro_state is
 								when "00" =>
 									sub_key_addr_out 	<= std_logic_vector(unsigned(sub_key_addr_out) + 1);
@@ -360,20 +358,23 @@ begin
 									micro_state <= micro_state + 1;
 								
 								when "10" =>
-									y <= (y xor ((x(62 downto 0) & x(63 downto 63) and x(55 downto 0) & x(63 downto 56))
-										xor x(60 downto 0) & x(63 downto 61)))
-										xor k;
+									y <= y xor (x(62 downto 0) & x(63 downto 63)and x(55 downto 0) & x(63 downto 56))
+											xor x(61 downto 0) & x(63 downto 62)
+											xor k;
 									micro_state <= micro_state + 1;
 									
 								when "11" =>
 									sub_key_addr_out 	<= std_logic_vector(unsigned(sub_key_addr_out) + 1);
-									x <= (x xor (((y(62 downto 0) & y(63 downto 63)) and (y(55 downto 0) & y(63 downto 56)))
-										xor y(60 downto 0) & y(63 downto 61)))
-										xor l;
+									x <= x xor (y(62 downto 0) & y(63 downto 63)and y(55 downto 0)  & y(63 downto 56))
+											xor y(61 downto 0) & y(63 downto 62)
+											xor l;
 									micro_state <= "00";
+									
+									if sub_key_addr_out  = 67 then
+										end_encrypt <= '1';
+									end if;
 								when others => null;
 							end case;
-						when others => null;
 					end case;
 				else 
 					case st_rounds is
@@ -382,12 +383,17 @@ begin
 							x(31 downto 0 )	<= data_word(1);
 							y(63 downto 32) <= data_word(2);
 							y(31 downto 0 ) <= data_word(3);
-							sub_key_addr_out <=	"1000111";
+							sub_key_addr_out <=	"1000011";
+							end_encrypt <= '0';
 								
-						when 1 to 68=>							
+						when others =>							
 							case micro_state is
 								when "00" =>
-									sub_key_addr_out 	<= std_logic_vector(unsigned(sub_key_addr_out) - 1);
+									if sub_key_addr_out  = "0000000" then
+										end_encrypt <= '1';
+									else
+										sub_key_addr_out 	<= std_logic_vector(unsigned(sub_key_addr_out) - 1);
+									end if;
 									k		<= sub_key_data_o;
 									micro_state <= micro_state + 1;
 							
@@ -396,20 +402,25 @@ begin
 									micro_state <= micro_state + 1;
 							
 								when "10" =>
-									y <= (y xor ((x(62 downto 0) & x(63 downto 63) and x(55 downto 0) & x(63 downto 56))
-										xor x(60 downto 0) & x(63 downto 61)))
-										xor k;
+									x <= x xor (y(62 downto 0) & y(63 downto 63)and y(55 downto 0) & y(63 downto 56))
+											xor y(61 downto 0) & y(63 downto 62)
+											xor k;
 									micro_state <= micro_state + 1;
 								
 								when "11" =>
-									sub_key_addr_out 	<= std_logic_vector(unsigned(sub_key_addr_out) - 1);
-									x <= (x xor (((y(62 downto 0) & y(63 downto 63)) and (y(55 downto 0) & y(63 downto 56)))
-										xor y(60 downto 0) & y(63 downto 61)))
-										xor l;
+									
+									y <= y xor (x(62 downto 0) & x(63 downto 63)and x(55 downto 0)  & x(63 downto 56))
+											xor x(61 downto 0) & x(63 downto 62)
+											xor l;
 									micro_state <= "00";
+									
+									if sub_key_addr_out  = "0000000" then
+										end_encrypt <= '1';
+									else
+										sub_key_addr_out 	<= std_logic_vector(unsigned(sub_key_addr_out) - 1);
+									end if;
 								when others => null;
 							end case;
-						when others => null;
 					end case;
 				end if;
 			end if;

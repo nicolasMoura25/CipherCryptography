@@ -10,37 +10,33 @@ add wave -noupdate /tb/DUT/data_valid
 add wave -noupdate -radix hexadecimal /tb/DUT/data_word_in
 add wave -noupdate -radix hexadecimal /tb/DUT/data_word_out
 add wave -noupdate /tb/DUT/data_ready
-add wave -noupdate -color Cyan -radix hexadecimal -radixshowbase 0 /tb/data_bkp
-add wave -noupdate -divider {Internal Signals}
-add wave -noupdate -color Cyan /tb/DUT/st
-add wave -noupdate -color Cyan -radix unsigned /tb/DUT/st_cnt
-add wave -noupdate -color Cyan -radix unsigned /tb/DUT/st_stage
-add wave -noupdate -color Orange -radix unsigned /tb/DUT/max_keys
-add wave -noupdate -color Orange -radix unsigned /tb/DUT/key_cnt
-add wave -noupdate -color {Medium Orchid} -radix hexadecimal -radixshowbase 0 /tb/DUT/data_word(0)
-add wave -noupdate -color {Medium Orchid} -radix hexadecimal -radixshowbase 0 /tb/DUT/data_word(1)
-add wave -noupdate -color {Medium Orchid} -radix hexadecimal -radixshowbase 0 /tb/DUT/data_word(2)
-add wave -noupdate -color {Medium Orchid} -radix hexadecimal -radixshowbase 0 /tb/DUT/data_word(3)
-add wave -position end  sim:/tb/DUT/key_data_o
-add wave -position end  sim:/tb/DUT/BRAM_KEY/RAM
-add wave -position 21  sim:/tb/DUT/BRAM_0/addr
-add wave -position end  sim:/tb/DUT/st_round
-add wave -position end  sim:/tb/DUT/key_addr
-add wave -position end  sim:/tb/DUT/sub_key_first
-add wave -position end  sim:/tb/DUT/sub_key_second
-add wave -position end  sim:/tb/DUT/sub_key_data_o
-add wave -position end  sim:/tb/DUT/sub_key_addr_in
-add wave -position end  sim:/tb/DUT/sub_key_addr
-add wave -position end  sim:/tb/DUT/z
-add wave -position end  sim:/tb/DUT/BRAM_SUB_KEYS/addr
-add wave -position end  sim:/tb/DUT/sub_key_word_in
-add wave -position 13  sim:/tb/DUT/st_rounds
-add wave -position 14  sim:/tb/DUT/x
-add wave -position 15  sim:/tb/DUT/y
-add wave -position 16  sim:/tb/DUT/k
-add wave -position 17  sim:/tb/DUT/l
-add wave -position 14  sim:/tb/DUT/micro_state
-add wave -position 15  sim:/tb/DUT/sub_key_addr_out
+add wave -noupdate -color purple -radix hexadecimal -radixshowbase 0 /tb/data_bkp
+add wave -noupdate -divider {Sub Keys}
+add wave -noupdate -color yellow sim:/tb/DUT/st
+add wave -noupdate -color yellow sim:/tb/DUT/st_rounds
+add wave -noupdate -color yellow sim:/tb/DUT/key_cnt
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/key_data_o
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_first
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_second
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_word_in
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_data_o
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_valid
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/z
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/ror3
+add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/ror4
+add wave -noupdate -color yellow -radix unsigned sim:/tb/DUT/sub_key_addr_in
+add wave -noupdate -divider {Encryption}
+add wave -noupdate -color Cyan sim:/tb/DUT/st
+add wave -noupdate -color Cyan sim:/tb/DUT/st_rounds
+add wave -noupdate -color Cyan sim:/tb/DUT/micro_state
+add wave -noupdate -color Cyan -radix hexadecimal sim:/tb/DUT/x
+add wave -noupdate -color Cyan -radix hexadecimal sim:/tb/DUT/y
+add wave -noupdate -color Cyan -radix hexadecimal sim:/tb/DUT/k
+add wave -noupdate -color Cyan -radix hexadecimal sim:/tb/DUT/l
+add wave -noupdate -color Cyan sim:/tb/DUT/sub_key_addr_out
+add wave -noupdate -color Cyan -radix hexadecimal sim:/tb/DUT/sub_key_data_o
+add wave -noupdate -color Cyan sim:/tb/DUT/end_encrypt
+add wave -noupdate -color orange -radix hexadecimal sim:/tb/DUT/BRAM_SUB_KEYS/RAM
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {1448170 ns} 0}
 quietly wave cursor active 1
