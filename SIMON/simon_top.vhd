@@ -50,6 +50,7 @@ architecture simon_top of simon_top is
 	signal st_stage 	: std_logic_vector(6 downto 0); --integer range 0 to 5;
 	signal st_data 		: std_logic; -- 0 high, 1 low
 	signal st_rounds	: integer range 0 to 76;
+	signal micro_state : std_logic_vector(1 downto 0) := (others => '0');
 
 	--Temporary signals
 	type PDATA is array (0 to 3) of std_logic_vector(31 downto 0);
@@ -57,44 +58,29 @@ architecture simon_top of simon_top is
 	signal first_join	: std_logic;
 	signal end_encrypt	: std_logic;
 
-	--ENC Loop signals
-	signal data_lp, data_rp : std_logic_vector (31 downto 0);
-	signal ss1, ss2, sout1, sout2 : std_logic_vector (31 downto 0);
-	signal counter : integer range 0 to 16; --Counting to control loop reading
-
-	--DEC Loop signals
-	signal counterd : integer range 1 to 17;
-	signal s_sout1, s_sout2 : std_logic_vector(31 downto 0);
-	signal micro_state : std_logic_vector(1 downto 0) := (others => '0');
-
 	--RAM signals	
-	type PKEYS is array (0 to 17) of std_logic_vector(31 downto 0); 
-	signal p_data_ram : PKEYS;
-	signal p_data_o   : std_logic_vector(31 downto 0):= (others => '0');
 	signal max_keys   : std_logic_vector(2 downto 0):= (others => '0');
 	signal key_cnt    : std_logic_vector(2 downto 0):= (others => '0');
 	signal key_addr   : std_logic_vector(2 downto 0):= (others => '0');
 	signal key_data_o : std_logic_vector(31 downto 0):= (others => '0');
-  
+	
+	-- RAM sub key signals
 	signal sub_key_valid	: std_logic;
 	signal sub_key_addr		: std_logic_vector(6 downto 0):= (others => '0');
 	signal sub_key_addr_in	: std_logic_vector(6 downto 0):= (others => '0');
 	signal sub_key_addr_out	: std_logic_vector(6 downto 0):= (others => '0');	
 	signal sub_key_word_in	: std_logic_vector(63 downto 0):= (others => '0');
-	signal aux_word_in		: std_logic_vector(63 downto 0):= (others => '0');
-	signal sub_key_data_o	: std_logic_vector(63 downto 0);
-	
-	-- debug
-	signal ror3	: std_logic_vector(63 downto 0):= (others => '0');
-	signal ror4	: std_logic_vector(63 downto 0):= (others => '0');
+	signal sub_key_data_o	: std_logic_vector(63 downto 0):= (others => '0');
   
 	--Simon variables
-	signal sub_key_first,sub_key_second,sub_key_third, sub_key_fourth : std_logic_vector(63 downto 0);
+	signal sub_key_first,sub_key_second : std_logic_vector(63 downto 0):= (others => '0');
+	signal		y,l,k,x	: std_logic_vector(63 downto 0) := (others => '0');
   
+	-- constants
 	constant 	c	: std_logic_vector(63 downto 0) := x"fffffffffffffffc";
 	constant 	one	: std_logic_vector(63 downto 0) := x"0000000000000001";
 	signal 		z	: std_logic_vector(63 downto 0) := x"7369f885192c0ef5";
-	signal		y,l,k,x	: std_logic_vector(63 downto 0) := (others => '0');
+
 begin
 	------------------------------------
 	-- BRAMs
@@ -183,8 +169,6 @@ begin
 					
 					sub_key_first	<= sub_key_second;
 					z 				<= "0" & z(63 downto 1);
-					ror3			<= sub_key_second(2 downto 0) & sub_key_second(63 downto 3);
-					ror4			<= sub_key_second(3 downto 0) & sub_key_second(63 downto 4);	
 					
 					sub_key_word_in <= c xor (z and one)
 										xor sub_key_first 
@@ -202,8 +186,6 @@ begin
 										xor sub_key_first
 										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3))
 										xor (sub_key_second(3 downto 0) & sub_key_second(63 downto 4));
-					ror3			<= sub_key_second(2 downto 0) & sub_key_second(63 downto 3);
-					ror4			<= sub_key_second(3 downto 0) & sub_key_second(63 downto 4);
 					sub_key_second 	<= c xor one
 										xor sub_key_first 
 										xor (sub_key_second(2 downto 0) & sub_key_second(63 downto 3))
