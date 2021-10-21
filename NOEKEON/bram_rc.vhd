@@ -8,7 +8,7 @@ use IEEE.std_logic_unsigned.all;
 --------------------------------------
 -- Entity
 --------------------------------------
-entity bram_sub_keys is
+entity bram_rc is
   port (
     clk     : in  std_logic;
     we      : in  std_logic;
@@ -21,7 +21,7 @@ end entity;
 --------------------------------------
 -- Architecture
 --------------------------------------
-architecture bram_sub_keys of bram_sub_keys is
+architecture bram_rc of bram_rc is
   type ram_type is array (0 to 16) of std_logic_vector(7 downto 0);
   signal RAM : ram_type := (
    x"80",x"1b",x"36",x"6c",

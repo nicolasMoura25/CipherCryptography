@@ -3,8 +3,8 @@ vlib work
 vmap work work
 
 vcom -work work bram_key.vhd
-vcom -work work bram_sub_keys.vhd
-vcom -work work simon_top.vhd
+vcom -work work bram_rc.vhd
+vcom -work work noekeon_top.vhd
 vcom -work work tb.vhd
 
 vsim -voptargs=+acc=lprn -t ns work.tb
@@ -14,4 +14,4 @@ set StdVitalGlitchNoWarnings 1
 
 do wave.do 
 
-run 11000 ns
+run 14000 ns
