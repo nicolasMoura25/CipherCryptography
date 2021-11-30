@@ -1,3 +1,12 @@
+-- FILE NAME : bram_s0.vhd
+-- STATUS    : Implementation of BRAM block used at GOST block cipher
+-- AUTHORS   : Nicolas Silva Moura
+-- E-mail    : nicolas.moura@edu.pucrs.br
+--------------------------------------------------------------------------------
+-- RELEASE HISTORY
+-- VERSION   DATE         DESCRIPTION
+-- 1.0       2021-10-10   Initial version of the BRAM.
+--------------------------------------------------------------------------------
 --------------------------------------
 -- Library
 --------------------------------------
@@ -10,11 +19,11 @@ use IEEE.std_logic_unsigned.all;
 --------------------------------------
 entity bram_s0 is
   port (
-    clk     : in  std_logic;
-    we      : in  std_logic;
-    addr    : in  std_logic_vector(6 downto 0);
-    data_i  : in  std_logic_vector(3 downto 0);
-    data_o  : out std_logic_vector(3 downto 0)
+    clk    : in  std_logic;
+    we     : in  std_logic;
+    addr   : in  std_logic_vector(6 downto 0);
+    data_i : in  std_logic_vector(3 downto 0);
+    data_o : out std_logic_vector(3 downto 0)
   );
 end entity;
 

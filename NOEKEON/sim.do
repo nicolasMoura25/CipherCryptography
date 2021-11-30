@@ -2,7 +2,6 @@ if {[file isdirectory work]} { vdel -all -lib work }
 vlib work
 vmap work work
 
-vcom -work work bram_key.vhd
 vcom -work work bram_rc.vhd
 vcom -work work noekeon_top.vhd
 vcom -work work tb.vhd

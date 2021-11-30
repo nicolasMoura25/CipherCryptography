@@ -14,16 +14,12 @@ add wave -noupdate -color purple -radix hexadecimal -radixshowbase 0 /tb/data_bk
 add wave -noupdate -divider {Sub Keys}
 add wave -noupdate -color yellow sim:/tb/DUT/st
 add wave -noupdate -color yellow sim:/tb/DUT/st_rounds
-add wave -noupdate -color yellow sim:/tb/DUT/key_cnt
-add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/key_data_o
 add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_first
 add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_second
 add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_word_in
 add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_data_o
 add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/sub_key_valid
 add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/z
-add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/ror3
-add wave -noupdate -color yellow -radix hexadecimal sim:/tb/DUT/ror4
 add wave -noupdate -color yellow -radix unsigned sim:/tb/DUT/sub_key_addr_in
 add wave -noupdate -divider {Encryption}
 add wave -noupdate -color Cyan sim:/tb/DUT/st
